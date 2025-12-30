@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cummins India Strategic Transformation Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+            animation: pulse 15s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0;
+        }
+        
+        .header {
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            padding: 2rem 3rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+        
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .header-stats {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .stat-box {
+            text-align: right;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .stat-value.blue {
+            color: #3b82f6;
+        }
+        
+        .stat-value.green {
+            color: #10b981;
+        }
+        
+        .divider {
+            width: 4px;
+            height: 50px;
+            background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+            border-radius: 2px;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-btn:hover,
+        .nav-btn.active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+            border-color: rgba(59, 130, 246, 0.5);
+            color: #ffffff;
+        }
+        
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-btn.active::before,
+        .nav-btn:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .content {
+            padding: 2rem 3rem;
+            animation: fadeIn 0.5s ease-in;
+            padding-bottom: 100px;
+        }
+        
+        .view-section {
+            display: none;
+        }
+        
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideIn 0.6s ease-out;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+        
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .metric-info {
+            flex: 1;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .metric-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .metric-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        
+        .chart-container {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: slideIn 0.6s ease-out;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .chart-subtitle {
+            color: #94a3b8;
+            margin-top: 0.5rem;
+        }
+        
+        .chart-stats {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .chart-stat {
+            text-align: center;
+        }
+        
+        .chart-stat-label {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        
+        .chart-stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .roadmap-stage {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            animation: slideIn 0.6s ease-out;
+        }
+        
+        .roadmap-stage.in-progress {
+            border-color: #3b82f6;
+        }
+        
+        .roadmap-stage.in-progress::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        }
+        
+        .stage-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stage-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+        
+        .stage-info {
+            flex: 1;
+        }
+        
+        .stage-meta {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+        
+        .stage-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 0.25rem 0 0;
+        }
+        
+        .progress-bar-container {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease-out;
+        }
+        
+        .stage-details {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .stage-badge {
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            padding: 1rem 3rem;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(59, 130, 246, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .footer-info {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        
+        .footer-stats {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .footer-stat {
+            text-align: center;
+        }
+        
+        .footer-stat-label {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        
+        .footer-stat-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        .pestel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .pestel-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        
+        .pestel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .pestel-category {
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        .pestel-score {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .pestel-driver {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+        
+        .competitor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .competitor-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 1.5rem;
+            animation: slideIn 0.6s ease-out;
+        }
+        
+        .competitor-bar {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .competitor-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0 0 1rem;
+        }
+        
+        .competitor-section {
+            margin-bottom: 1rem;
+        }
+        
+        .competitor-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 0.25rem;
+        }
+        
+        .competitor-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        
+        .response-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .strength-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+        
+        .challenge-box {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+        
+        .box-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .box-title {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
+        ul {
+            margin: 0;
+            padding: 0 0 0 1.5rem;
+            line-height: 1.8;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 1.5rem;
+            }
+            
+            .title {
+                font-size: 1.8rem;
+            }
+            
+            .content {
+                padding: 1.5rem;
+            }
+            
+            .footer {
+                padding: 1rem;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-pattern"></div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="header-top">
+                <div>
+                    <h1 class="title">Cummins India Strategic Transformation</h1>
+                    <p class="subtitle">Battery Energy Storage & Energy-as-a-Service Dashboard</p>
+                </div>
+                <div class="header-stats">
+                    <div class="stat-box">
+                        <div class="stat-label">FY 2024-25</div>
+                        <div class="stat-value blue">₹10,166 Cr</div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="stat-box">
+                        <div class="stat-label">Op. Margin</div>
+                        <div class="stat-value green">22.6%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="showView('overview')">📊 Strategic Overview</button>
+                <button class="nav-btn" onclick="showView('financial')">💰 Financial Analysis</button>
+                <button class="nav-btn" onclick="showView('market')">📈 Market Intelligence</button>
+                <button class="nav-btn" onclick="showView('roadmap')">📅 Transformation Roadmap</button>
+                <button class="nav-btn" onclick="showView('competitive')">🎯 Competitive Forces</button>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- OVERVIEW VIEW -->
+            <div id="overview-view" class="view-section active">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-info">
+                                <div class="metric-label">Revenue Target 2030</div>
+                                <div class="metric-value">$3.8B</div>
+                                <div class="metric-change" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">
+                                    ↗ +177%
+                                </div>
+                            </div>
+                            <div class="metric-icon" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);">
+                                💰
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-info">
+                                <div class="metric-label">Operating Margin</div>
+                                <div class="metric-value">24%</div>
+                                <div class="metric-change" style="background: rgba(59, 130, 246, 0.2); color: #3b82f6;">
+                                    ↗ +4.8pp
+                                </div>
+                            </div>
+                            <div class="metric-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);">
+                                📈
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-info">
+                                <div class="metric-label">Market Share Goal</div>
+                                <div class="metric-value">15%</div>
+                                <div class="metric-change" style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6;">
+                                    C&I EaaS
+                                </div>
+                            </div>
+                            <div class="metric-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);">
+                                🎯
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-info">
+                                <div class="metric-label">Transformation Budget</div>
+                                <div class="metric-value">$1.0B</div>
+                                <div class="metric-change" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">
+                                    60 months
+                                </div>
+                            </div>
+                            <div class="metric-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);">
+                                💼
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">Revenue Growth Trajectory</h3>
+                            <p class="chart-subtitle">2024-2030 Strategic Transformation</p>
+                        </div>
+                        <div class="chart-stats">
+                            <div class="chart-stat">
+                                <div class="chart-stat-label">Current (2024)</div>
+                                <div class="chart-stat-value" style="color: #3b82f6;">$1.37B</div>
+                            </div>
+                            <div class="chart-stat">
+                                <div class="chart-stat-label">Target (2030)</div>
+                                <div class="chart-stat-value" style="color: #10b981;">$3.80B</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="revenue-chart"></div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3 class="chart-title">PESTEL Macro-Environmental Impact Analysis</h3>
+                    <div id="pestel-chart"></div>
+                    <div class="pestel-grid">
+                        <div class="pestel-item">
+                            <div class="pestel-header">
+                                <span class="pestel-category">Political</span>
+                                <span class="pestel-score" style="background: rgba(139, 92, 246, 0.425);">85%</span>
+                            </div>
+                            <div class="pestel-driver">VGF Scheme (₹91B)</div>
+                        </div>
+                        <div class="pestel-item">
+                            <div class="pestel-header">
+                                <span class="pestel-category">Economic</span>
+                                <span class="pestel-score" style="background: rgba(139, 92, 246, 0.46);">92%</span>
+                            </div>
+                            <div class="pestel-driver">Battery Cost: $134/kWh</div>
+                        </div>
+                        <div class="pestel-item">
+                            <div class="pestel-header">
+                                <span class="pestel-category">Social</span>
+                                <span class="pestel-score" style="background: rgba(139, 92, 246, 0.39);">78%</span>
+                            </div>
+                            <div class="pestel-driver">71% Consumer Dissatisfaction</div>
+                        </div>
+                        <div class="pestel-item">
+                            <div class="pestel-header">
+                                <span class="pestel-category">Technological</span>
+                                <span class="pestel-score" style="background: rgba(139, 92, 246, 0.44);">88%</span>
+                            </div>
+                            <div class="pestel-driver">AI-Powered O&M</div>
+                        </div>
+                        <div class="pestel-item">
+                            <div class="pestel-header">
+                                <span class="pestel-category">Environmental</span>
+                                <span class="pestel-score" style="background: rgba(139, 92, 246, 0.475);">95%</span>
+                            </div>
+                            <div class="pestel-driver">500 GW Non-Fossil Target</div>
+                        </div>
+                        <div class="pestel-item">
+                            <div class="pestel-header">
+                                <span class="pestel-category">Legal</span>
+                                <span class="pestel-score" style="background: rgba(139, 92, 246, 0.4);">80%</span>
+                            </div>
+                            <div class="pestel-driver">CERC IESS Framework</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- FINANCIAL VIEW -->
+            <div id="financial-view" class="view-section">
+                <div class="chart-container">
+                    <h3 class="chart-title">Competitive Financial Benchmarking</h3>
+                    <div id="financial-comparison-chart"></div>
+                    
+                    <div class="metrics-grid" style="margin-top: 2rem;">
+                        <div class="metric-card">
+                            <h4 style="color: #3b82f6; font-size: 1.3rem; margin-bottom: 1rem;">Cummins</h4>
+                            <div style="margin-bottom: 1rem;">
+                                <div class="metric-label">Revenue (₹ Crore)</div>
+                                <div class="metric-value" style="font-size: 1.8rem;">₹10,166</div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                <div>
+                                    <div class="metric-label">Op. Margin</div>
+                                    <div style="font-size: 1.4rem; font-weight: 700; color: #10b981;">22.6%</div>
+                                </div>
+                                <div>
+                                    <div class="metric-label">ROE</div>
+                                    <div style="font-size: 1.4rem; font-weight: 700; color: #3b82f6;">26.4%</div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="metric-label" style="margin-bottom: 0.5rem;">Debt-to-Equity Ratio</div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: 0%; background: #10b981;"></div>
+                                </div>
+                                <div style="font-size: 0.95rem; font-weight: 600; margin-top: 0.5rem;">0.0x</div>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <h4 style="color: #10b981; font-size: 1.3rem; margin-bottom: 1rem;">Tata Power</h4>
+                            <div style="margin-bottom: 1rem;">
+                                <div class="metric-label">Revenue (₹ Crore)</div>
+                                <div class="metric-value" style="font-size: 1.8rem;">₹64,502</div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                <div>
+                                    <div class="metric-label">Op. Margin</div>
+                                    <div style="font-size: 1.4rem; font-weight: 700; color: #10b981;">20.8%</div>
+                                </div>
+                                <div>
+                                    <div class="metric-label">ROE</div>
+                                    <div style="font-size: 1.4rem; font-weight: 700; color: #3b82f6;">13.3%</div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="metric-label" style="margin-bottom: 0.5rem;">Debt-to-Equity Ratio</div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: 20%; background: #f59e0b;"></div>
+                                </div>
+                                <div style="font-size: 0.95rem; font-weight: 600; margin-top: 0.5rem;">1.2x</div>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <h4 style="color: #f59e0b; font-size: 1.3rem; margin-bottom: 1rem;">Adani Green</h4>
+                            <div style="margin-bottom: 1rem;">
+                                <div class="metric-label">Revenue (₹ Crore)</div>
+                                <div class="metric-value" style="font-size: 1.8rem;">₹12,176</div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                <div>
+                                    <div class="metric-label">Op. Margin</div>
+                                    <div style="font-size: 1.4rem; font-weight: 700; color: #10b981;">91.8%</div>
+                                </div>
+                                <div>
+                                    <div class="metric-label">ROE</div>
+                                    <div style="font-size: 1.4rem; font-weight: 700; color: #3b82f6;">28.8%</div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="metric-label" style="margin-bottom: 0.5rem;">Debt-to-Equity Ratio</div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: 100%; background: #ef4444;"></div>
+                                </div>
+                                <div style="font-size: 0.95rem; font-weight: 600; margin-top: 0.5rem;">6.0x</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="strength-box">
+                        <div class="box-header">
+                            <span style="font-size: 2rem;">✓</span>
+                            <h3 class="box-title">Key Strengths</h3>
+                        </div>
+                        <ul>
+                            <li>Zero debt with current ratio of 3.1x</li>
+                            <li>Strong ROE of 26.4% (industry-leading)</li>
+                            <li>480+ service touchpoints across India</li>
+                            <li>₹10,166 Cr revenue milestone achieved</li>
+                            <li>$1B liquidity for transformation program</li>
+                        </ul>
+                    </div>
+                    <div class="challenge-box">
+                        <div class="box-header">
+                            <span style="font-size: 2rem;">⚠</span>
+                            <h3 class="box-title">Strategic Challenges</h3>
+                        </div>
+                        <ul>
+                            <li>Hardware-centric legacy business model</li>
+                            <li>Limited BESS technology partnerships</li>
+                            <li>Need for digital platform capabilities</li>
+                            <li>Service revenue only 30% of total</li>
+                            <li>EaaS market experience limited</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- MARKET VIEW -->
+            <div id="market-view" class="view-section">
+                <div class="chart-container">
+                    <h3 class="chart-title">Market Opportunity Analysis</h3>
+                    <div id="market-opportunity-chart"></div>
+                    
+                    <div style="margin-top: 2rem;">
+                        <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2)); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 16px; padding: 1.5rem; text-align: center; margin-bottom: 2rem;">
+                            <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.5rem;">Total Addressable Revenue by 2030-2033</div>
+                            <div style="font-size: 2.5rem; font-weight: 800; color: #ffffff;">$3.34B</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3 class="chart-title">Key Market Drivers & Trends</h3>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 1.75rem;">
+                                🔋
+                            </div>
+                            <h4 style="margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; color: #94a3b8;">Battery Cost Reduction</h4>
+                            <div style="font-size: 2rem; font-weight: 800; color: #ffffff; margin-bottom: 0.25rem;">$134/kWh</div>
+                            <div style="font-size: 0.9rem; color: #10b981;">-65% from 2015</div>
+                        </div>
+                        <div class="metric-card">
+                            <div style="width: 50px; height: 50px; background: rgba(245, 158, 11, 0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 1.75rem;">
+                                ☀️
+                            </div>
+                            <h4 style="margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; color: #94a3b8;">Renewable Target</h4>
+                            <div style="font-size: 2rem; font-weight: 800; color: #ffffff; margin-bottom: 0.25rem;">500 GW</div>
+                            <div style="font-size: 0.9rem; color: #f59e0b;">by 2030</div>
+                        </div>
+                        <div class="metric-card">
+                            <div style="width: 50px; height: 50px; background: rgba(239, 68, 68, 0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 1.75rem;">
+                                ⚡
+                            </div>
+                            <h4 style="margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; color: #94a3b8;">Grid Unreliability</h4>
+                            <div style="font-size: 2rem; font-weight: 800; color: #ffffff; margin-bottom: 0.25rem;">71%</div>
+                            <div style="font-size: 0.9rem; color: #ef4444;">Face power cuts</div>
+                        </div>
+                        <div class="metric-card">
+                            <div style="width: 50px; height: 50px; background: rgba(59, 130, 246, 0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; font-size: 1.75rem;">
+                                🎯
+                            </div>
+                            <h4 style="margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; color: #94a3b8;">BESS Market CAGR</h4>
+                            <div style="font-size: 2rem; font-weight: 800; color: #ffffff; margin-bottom: 0.25rem;">25.8%</div>
+                            <div style="font-size: 0.9rem; color: #3b82f6;">$32B by 2033</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ROADMAP VIEW -->
+            <div id="roadmap-view" class="view-section">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div>
+                            <h3 class="chart-title">7-Stage Transformation Roadmap</h3>
+                            <p class="chart-subtitle">60-Month Strategic Program • $1.0B Total Investment</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 1rem 2rem; border-radius: 16px; text-align: center;">
+                            <div style="font-size: 0.85rem; margin-bottom: 0.25rem;">Total Investment</div>
+                            <div style="font-size: 2rem; font-weight: 800;">$1.0B</div>
+                        </div>
+                    </div>
+                    
+                    <div class="roadmap-stage in-progress">
+                        <div class="stage-header">
+                            <div class="stage-number" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">1</div>
+                            <div class="stage-info">
+                                <div class="stage-meta">Stage 1 • 1-6 months</div>
+                                <h4 class="stage-name">Strategic Foundation & Assessment</h4>
+                            </div>
+                        </div>
+                        <div style="margin-left: 66px;">
+                            <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.75rem;">Progress: 75%</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: 75%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
+                            </div>
+                            <div class="stage-details">
+                                <div class="stage-badge" style="background: rgba(59, 130, 246, 0.2);">Budget: $25M</div>
+                                <div class="stage-badge" style="background: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: #3b82f6; text-transform: uppercase;">● IN PROGRESS</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="roadmap-stage">
+                        <div class="stage-header">
+                            <div class="stage-number" style="background: rgba(255, 255, 255, 0.1);">2</div>
+                            <div class="stage-info">
+                                <div class="stage-meta">Stage 2 • 7-15 months</div>
+                                <h4 class="stage-name">Partnership Development & Technology Acquisition</h4>
+                            </div>
+                        </div>
+                        <div style="margin-left: 66px;">
+                            <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.75rem;">Progress: 15%</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: 15%; background: rgba(148, 163, 184, 0.5);"></div>
+                            </div>
+                            <div class="stage-details">
+                                <div class="stage-badge" style="background: rgba(255, 255, 255, 0.05);">Budget: $350M</div>
+                                <div class="stage-badge" style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; text-transform: uppercase;">PLANNED</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="roadmap-stage">
+                        <div class="stage-header">
+                            <div class="stage-number" style="background: rgba(255, 255, 255, 0.1);">3</div>
+                            <div class="stage-info">
+                                <div class="stage-meta">Stage 3 • 7-24 months</div>
+                                <h4 class="stage-name">Pilot Project Implementation</h4>
+                            </div>
+                        </div>
+                        <div style="margin-left: 66px;">
+                            <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.75rem;">Progress: 10%</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: 10%; background: rgba(148, 163, 184, 0.5);"></div>
+                            </div>
+                            <div class="stage-details">
+                                <div class="stage-badge" style="background: rgba(255, 255, 255, 0.05);">Budget: $150M</div>
+                                <div class="stage-badge" style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; text-transform: uppercase;">PLANNED</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="roadmap-stage">
+                        <div class="stage-header">
+                            <div class="stage-number" style="background: rgba(255, 255, 255, 0.1);">4</div>
+                            <div class="stage-info">
+                                <div class="stage-meta">Stage 4 • 16-30 months</div>
+                                <h4 class="stage-name">Digital Platform Development</h4>
+                            </div>
+                        </div>
+                        <div style="margin-left: 66px;">
+                            <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.75rem;">Progress: 0%</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: 0%; background: rgba(148, 163, 184, 0.5);"></div>
+                            </div>
+                            <div class="stage-details">
+                                <div class="stage-badge" style="background: rgba(255, 255, 255, 0.05);">Budget: $75M</div>
+                                <div class="stage-badge" style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; text-transform: uppercase;">PLANNED</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="roadmap-stage">
+                        <div class="stage-header">
+                            <div class="stage-number" style="background: rgba(255, 255, 255, 0.1);">5</div>
+                            <div class="stage-info">
+                                <div class="stage-meta">Stage 5 • 25-48 months</div>
+                                <h4 class="stage-name">Scale-Up & Market Expansion</h4>
+                            </div>
+                        </div>
+                        <div style="margin-left: 66px;">
+                            <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.75rem;">Progress: 0%</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: 0%; background: rgba(148, 163, 184, 0.5);"></div>
+                            </div>
+                            <div class="stage-details">
+                                <div class="stage-badge" style="background: rgba(255, 255, 255, 0.05);">Budget: $250M</div>
+                                <div class="stage-badge" style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; text-transform: uppercase;">PLANNED</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="roadmap-stage">
+                        <div class="stage-header">
+                            <div class="stage-number" style="background: rgba(255, 255, 255, 0.1);">6</div>
+                            <div class="stage-info">
+                                <div class="stage-meta">Stage 6 • 37-54 months</div>
+                                <h4 class="stage-name">Business Model Transformation</h4>
+                            </div>
+                        </div>
+                        <div style="margin-left: 66px;">
+                            <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.75rem;">Progress: 0%</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: 0%; background: rgba(148, 163, 184, 0.5);"></div>
+                            </div>
+                            <div class="stage-details">
+                                <div class="stage-badge" style="background: rgba(255, 255, 255, 0.05);">Budget: $100M</div>
+                                <div class="stage-badge" style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; text-transform: uppercase;">PLANNED</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="roadmap-stage">
+                        <div class="stage-header">
+                            <div class="stage-number" style="background: rgba(255, 255, 255, 0.1);">7</div>
+                            <div class="stage-info">
+                                <div class="stage-meta">Stage 7 • 49-60 months</div>
+                                <h4 class="stage-name">Full Integration & Optimization</h4>
+                            </div>
+                        </div>
+                        <div style="margin-left: 66px;">
+                            <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 0.75rem;">Progress: 0%</div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: 0%; background: rgba(148, 163, 184, 0.5);"></div>
+                            </div>
+                            <div class="stage-details">
+                                <div class="stage-badge" style="background: rgba(255, 255, 255, 0.05);">Budget: $50M</div>
+                                <div class="stage-badge" style="background: rgba(255, 255, 255, 0.05); color: #94a3b8; text-transform: uppercase;">PLANNED</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3 class="chart-title">Year 1 Monthly Progress Tracking</h3>
+                    <div id="monthly-progress-chart"></div>
+                </div>
+            </div>
+            
+            <!-- COMPETITIVE VIEW -->
+            <div id="competitive-view" class="view-section">
+                <div class="chart-container">
+                    <h3 class="chart-title">Porter's Five Forces Analysis</h3>
+                    <div id="competitive-forces-chart"></div>
+                </div>
+                
+                <div class="competitor-grid">
+                    <div class="competitor-card">
+                        <div class="competitor-bar" style="background: #ef4444;"></div>
+                        <h4 class="competitor-title" style="color: #ef4444;">Domestic IPPs</h4>
+                        <div class="competitor-section">
+                            <div class="competitor-label">Key Players</div>
+                            <div class="competitor-value">Adani Green, ReNew Power</div>
+                        </div>
+                        <div class="competitor-section">
+                            <div class="competitor-label">Competitive Advantage</div>
+                            <div class="competitor-value">Massive scale, long-term PPAs</div>
+                        </div>
+                        <div class="response-box">
+                            <div class="competitor-label">Cummins Response</div>
+                            <div class="competitor-value">Focus on hybrid systems & firm RTC power</div>
+                        </div>
+                    </div>
+                    
+                    <div class="competitor-card">
+                        <div class="competitor-bar" style="background: #f59e0b;"></div>
+                        <h4 class="competitor-title" style="color: #f59e0b;">Digital Tech Giants</h4>
+                        <div class="competitor-section">
+                            <div class="competitor-label">Key Players</div>
+                            <div class="competitor-value">Siemens, Schneider Electric</div>
+                        </div>
+                        <div class="competitor-section">
+                            <div class="competitor-label">Competitive Advantage</div>
+                            <div class="competitor-value">Software dominance, global services</div>
+                        </div>
+                        <div class="response-box">
+                            <div class="competitor-label">Cummins Response</div>
+                            <div class="competitor-value">Leverage SSD network for physical O&M</div>
+                        </div>
+                    </div>
+                    
+                    <div class="competitor-card">
+                        <div class="competitor-bar" style="background: #3b82f6;"></div>
+                        <h4 class="competitor-title" style="color: #3b82f6;">BESS Specialists</h4>
+                        <div class="competitor-section">
+                            <div class="competitor-label">Key Players</div>
+                            <div class="competitor-value">Tesla Energy, Fluence</div>
+                        </div>
+                        <div class="competitor-section">
+                            <div class="competitor-label">Competitive Advantage</div>
+                            <div class="competitor-value">Integrated hardware/software stacks</div>
+                        </div>
+                        <div class="response-box">
+                            <div class="competitor-label">Cummins Response</div>
+                            <div class="competitor-value">Partner with tier-1 battery OEMs</div>
+                        </div>
+                    </div>
+                    
+                    <div class="competitor-card">
+                        <div class="competitor-bar" style="background: #8b5cf6;"></div>
+                        <h4 class="competitor-title" style="color: #8b5cf6;">Domestic Utilities</h4>
+                        <div class="competitor-section">
+                            <div class="competitor-label">Key Players</div>
+                            <div class="competitor-value">Tata Power, EESL</div>
+                        </div>
+                        <div class="competitor-section">
+                            <div class="competitor-label">Competitive Advantage</div>
+                            <div class="competitor-value">Established distribution & customer base</div>
+                        </div>
+                        <div class="response-box">
+                            <div class="competitor-label">Cummins Response</div>
+                            <div class="competitor-value">Anchor EaaS in high-uptime C&I sectors</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="footer-info">
+                Dashboard Updated: December 31, 2025 | Data Source: Strategic Transformation Report FY 2024-25
+            </div>
+            <div class="footer-stats">
+                <div class="footer-stat">
+                    <div class="footer-stat-label">CAGR Target</div>
+                    <div class="footer-stat-value" style="color: #10b981;">25.8%</div>
+                </div>
+                <div class="footer-stat">
+                    <div class="footer-stat-label">Timeline</div>
+                    <div class="footer-stat-value" style="color: #3b82f6;">2024-2030</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(viewId + '-view').classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // Revenue Growth Chart
+        const revenueData = [
+            { year: '2024', revenue: 1.37, target: 1.37 },
+            { year: '2025', revenue: 1.65, target: 1.70 },
+            { year: '2026', revenue: 2.05, target: 2.15 },
+            { year: '2027', revenue: 2.55, target: 2.70 },
+            { year: '2028', revenue: 3.05, target: 3.30 },
+            { year: '2029', revenue: 3.45, target: 3.60 },
+            { year: '2030', revenue: 3.80, target: 3.80 }
+        ];
+        
+        const revenueTrace1 = {
+            x: revenueData.map(d => d.year),
+            y: revenueData.map(d => d.revenue),
+            name: 'Projected Revenue',
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: { color: '#3b82f6', width: 3 },
+            marker: { size: 8 },
+            fill: 'tozeroy',
+            fillcolor: 'rgba(59, 130, 246, 0.2)'
+        };
+        
+        const revenueTrace2 = {
+            x: revenueData.map(d => d.year),
+            y: revenueData.map(d => d.target),
+            name: 'Target',
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: { color: '#10b981', width: 3, dash: 'dash' },
+            marker: { size: 8 }
+        };
+        
+        const revenueLayout = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#94a3b8' },
+            xaxis: {
+                title: 'Year',
+                gridcolor: 'rgba(255,255,255,0.1)',
+                color: '#94a3b8'
+            },
+            yaxis: {
+                title: 'Revenue ($B)',
+                gridcolor: 'rgba(255,255,255,0.1)',
+                color: '#94a3b8'
+            },
+            legend: {
+                x: 0.02,
+                y: 0.98,
+                bgcolor: 'rgba(26, 26, 46, 0.8)',
+                bordercolor: 'rgba(59, 130, 246, 0.3)',
+                borderwidth: 1
+            },
+            margin: { t: 20, r: 20, b: 60, l: 60 }
+        };
+        
+        Plotly.newPlot('revenue-chart', [revenueTrace1, revenueTrace2], revenueLayout, { responsive: true });
+        
+        // PESTEL Radar Chart
+        const pestelData = [
+            { category: 'Political', impact: 85 },
+            { category: 'Economic', impact: 92 },
+            { category: 'Social', impact: 78 },
+            { category: 'Technological', impact: 88 },
+            { category: 'Environmental', impact: 95 },
+            { category: 'Legal', impact: 80 }
+        ];
+        
+        const pestelTrace = {
+            type: 'scatterpolar',
+            r: pestelData.map(d => d.impact),
+            theta: pestelData.map(d => d.category),
+            fill: 'toself',
+            fillcolor: 'rgba(139, 92, 246, 0.3)',
+            line: { color: '#8b5cf6', width: 2 },
+            marker: { size: 8, color: '#8b5cf6' },
+            name: 'Impact Score'
+        };
+        
+        const pestelLayout = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#94a3b8' },
+            polar: {
+                radialaxis: {
+                    visible: true,
+                    range: [0, 100],
+                    gridcolor: 'rgba(255,255,255,0.2)',
+                    color: '#94a3b8'
+                },
+                angularaxis: {
+                    gridcolor: 'rgba(255,255,255,0.2)',
+                    color: '#94a3b8'
+                },
+                bgcolor: 'rgba(0,0,0,0)'
+            },
+            showlegend: false,
+            margin: { t: 40, r: 40, b: 40, l: 40 }
+        };
+        
+        Plotly.newPlot('pestel-chart', [pestelTrace], pestelLayout, { responsive: true });
+        
+        // Financial Comparison Chart
+        const financialData = [
+            { company: 'Cummins', margin: 22.6, roe: 26.4 },
+            { company: 'Tata Power', margin: 20.8, roe: 13.3 },
+            { company: 'Adani Green', margin: 91.8, roe: 28.8 }
+        ];
+        
+        const marginTrace = {
+            x: financialData.map(d => d.company),
+            y: financialData.map(d => d.margin),
+            name: 'Operating Margin %',
+            type: 'bar',
+            marker: { color: '#10b981' }
+        };
+        
+        const roeTrace = {
+            x: financialData.map(d => d.company),
+            y: financialData.map(d => d.roe),
+            name: 'ROE %',
+            type: 'bar',
+            marker: { color: '#3b82f6' }
+        };
+        
+        const financialLayout = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#94a3b8' },
+            xaxis: {
+                gridcolor: 'rgba(255,255,255,0.1)',
+                color: '#94a3b8'
+            },
+            yaxis: {
+                title: 'Percentage (%)',
+                gridcolor: 'rgba(255,255,255,0.1)',
+                color: '#94a3b8'
+            },
+            legend: {
+                x: 0.02,
+                y: 0.98,
+                bgcolor: 'rgba(26, 26, 46, 0.8)',
+                bordercolor: 'rgba(59, 130, 246, 0.3)',
+                borderwidth: 1
+            },
+            barmode: 'group',
+            margin: { t: 20, r: 20, b: 60, l: 60 }
+        };
+        
+        Plotly.newPlot('financial-comparison-chart', [marginTrace, roeTrace], financialLayout, { responsive: true });
+        
+        // Market Opportunity Chart
+        const marketData = [
+            { segment: 'C&I EaaS', value: 6000, color: '#3b82f6' },
+            { segment: 'Grid-Scale BESS', value: 17000, color: '#10b981' },
+            { segment: 'Hybrid Systems', value: 9000, color: '#f59e0b' }
+        ];
+        
+        const marketTrace = {
+            values: marketData.map(d => d.value),
+            labels: marketData.map(d => d.segment),
+            type: 'pie',
+            marker: {
+                colors: marketData.map(d => d.color)
+            },
+            textinfo: 'label+percent',
+            textposition: 'outside',
+            automargin: true
+        };
+        
+        const marketLayout = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#ffffff', size: 14 },
+            showlegend: true,
+            legend: {
+                x: 0,
+                y: -0.2,
+                bgcolor: 'rgba(26, 26, 46, 0.8)',
+                bordercolor: 'rgba(59, 130, 246, 0.3)',
+                borderwidth: 1,
+                orientation: 'h'
+            },
+            margin: { t: 20, r: 20, b: 80, l: 20 }
+        };
+        
+        Plotly.newPlot('market-opportunity-chart', [marketTrace], marketLayout, { responsive: true });
+        
+        // Monthly Progress Chart
+        const monthlyData = [
+            { month: 'Jan', foundation: 15, partnerships: 0, pilots: 0, digital: 0 },
+            { month: 'Feb', foundation: 30, partnerships: 0, pilots: 0, digital: 0 },
+            { month: 'Mar', foundation: 45, partnerships: 0, pilots: 0, digital: 0 },
+            { month: 'Apr', foundation: 60, partnerships: 5, pilots: 0, digital: 0 },
+            { month: 'May', foundation: 75, partnerships: 10, pilots: 0, digital: 0 },
+            { month: 'Jun', foundation: 90, partnerships: 15, pilots: 5, digital: 0 },
+            { month: 'Jul', foundation: 100, partnerships: 25, pilots: 10, digital: 0 },
+            { month: 'Aug', foundation: 100, partnerships: 35, pilots: 15, digital: 5 },
+            { month: 'Sep', foundation: 100, partnerships: 45, pilots: 25, digital: 10 }
+        ];
+        
+        const foundationTrace = {
+            x: monthlyData.map(d => d.month),
+            y: monthlyData.map(d => d.foundation),
+            name: 'Stage 1: Foundation',
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: { color: '#3b82f6', width: 3 }
+        };
+        
+        const partnershipsTrace = {
+            x: monthlyData.map(d => d.month),
+            y: monthlyData.map(d => d.partnerships),
+            name: 'Stage 2: Partnerships',
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: { color: '#10b981', width: 3 }
+        };
+        
+        const pilotsTrace = {
+            x: monthlyData.map(d => d.month),
+            y: monthlyData.map(d => d.pilots),
+            name: 'Stage 3: Pilots',
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: { color: '#f59e0b', width: 3 }
+        };
+        
+        const digitalTrace = {
+            x: monthlyData.map(d => d.month),
+            y: monthlyData.map(d => d.digital),
+            name: 'Stage 4: Digital',
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: { color: '#8b5cf6', width: 3 }
+        };
+        
+        const monthlyLayout = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#94a3b8' },
+            xaxis: {
+                title: 'Month',
+                gridcolor: 'rgba(255,255,255,0.1)',
+                color: '#94a3b8'
+            },
+            yaxis: {
+                title: 'Completion %',
+                gridcolor: 'rgba(255,255,255,0.1)',
+                color: '#94a3b8',
+                range: [0, 100]
+            },
+            legend: {
+                x: 0.02,
+                y: 0.98,
+                bgcolor: 'rgba(26, 26, 46, 0.8)',
+                bordercolor: 'rgba(59, 130, 246, 0.3)',
+                borderwidth: 1
+            },
+            margin: { t: 20, r: 20, b: 60, l: 60 }
+        };
+        
+        Plotly.newPlot('monthly-progress-chart', [foundationTrace, partnershipsTrace, pilotsTrace, digitalTrace], monthlyLayout, { responsive: true });
+        
+        // Competitive Forces Chart
+        const competitiveData = [
+            { force: 'Competitive Rivalry', intensity: 85, color: '#ef4444' },
+            { force: 'New Entrants', intensity: 60, color: '#f59e0b' },
+            { force: 'Buyer Power', intensity: 80, color: '#eab308' },
+            { force: 'Supplier Power', intensity: 55, color: '#84cc16' },
+            { force: 'Substitutes', intensity: 50, color: '#10b981' }
+        ];
+        
+        const competitiveTrace = {
+            x: competitiveData.map(d => d.intensity),
+            y: competitiveData.map(d => d.force),
+            type: 'bar',
+            orientation: 'h',
+            marker: {
+                color: competitiveData.map(d => d.color)
+            }
+        };
+        
+        const competitiveLayout = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#94a3b8' },
+            xaxis: {
+                title: 'Intensity Score',
+                range: [0, 100],
+                gridcolor: 'rgba(255,255,255,0.1)',
+                color: '#94a3b8'
+            },
+            yaxis: {
+                gridcolor: 'rgba(255,255,255,0.1)',
+                color: '#94a3b8'
+            },
+            margin: { t: 20, r: 20, b: 60, l: 150 }
+        };
+        
+        Plotly.newPlot('competitive-forces-chart', [competitiveTrace], competitiveLayout, { responsive: true });
+    </script>
+</body>
+</html>
